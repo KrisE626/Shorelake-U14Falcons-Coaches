@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shorelake SC — BU14 Coach Player Evaluation</title>
+<style>
+  :root {
+    --navy: #1B3A6B; --green: #2E7D32; --green-light: #E8F5E9;
+    --red: #B71C1C; --red-light: #FFEBEE; --orange: #E65100; --orange-light: #FFF3E0;
+    --amber: #FF8F00; --yellow-light: #FFF9C4; --blue-light: #E8F0FE;
+    --bg: #F7F8FA; --card: #FFFFFF; --text: #1A1A1A; --text-muted: #666666;
+    --border: #E2E5EA; --chip-off: #EEF0F3; --teal: #00695C; --teal-light: #E0F2F1;
+    --purple: #4A148C; --purple-light: #EDE7F6;
+    box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#14161A; --card:#1E2126; --text:#EDEDED; --text-muted:#A0A4AA; --border:#33373D;
+      --chip-off:#2A2E34; --blue-light:#22314f; --green-light:#1c3320; --red-light:#3a1a1a;
+      --orange-light:#3a2510; --yellow-light:#3a3410; --teal-light:#12302c; --purple-light:#241a3a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#14161A; --card:#1E2126; --text:#EDEDED; --text-muted:#A0A4AA; --border:#33373D;
+    --chip-off:#2A2E34; --blue-light:#22314f; --green-light:#1c3320; --red-light:#3a1a1a;
+    --orange-light:#3a2510; --yellow-light:#3a3410; --teal-light:#12302c; --purple-light:#241a3a;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:760px; margin:0 auto; padding:0 16px 60px; }
+
+  header.top { position:sticky; top:env(safe-area-inset-top,0px); z-index:20; background:var(--navy); color:white;
+    padding:14px 16px calc(14px + env(safe-area-inset-top,0px)); box-shadow:0 2px 10px rgba(0,0,0,0.15); }
+  header.top .inner { max-width:760px; margin:0 auto; }
+  header.top .brand { font-size:13px; opacity:0.85; letter-spacing:0.02em; text-transform:uppercase; }
+  header.top h1 { margin:2px 0 10px; font-size:18px; font-weight:700; }
+  .tabs { display:flex; gap:6px; }
+  .tab-btn { flex:1; padding:9px 6px; border-radius:8px; border:1px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.08); color:white; font-size:12.5px; font-weight:600; cursor:pointer; text-align:center; }
+  .tab-btn.active { background:white; color:var(--navy); border-color:white; }
+
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-top:16px; }
+  .intro-card { border-left:4px solid var(--green); }
+  .intro-card h2 { margin:0 0 8px; font-size:16px; color:var(--green); }
+  .intro-card p { margin:0; font-size:14px; line-height:1.5; color:var(--text-muted); }
+
+  .player-card { border-left:4px solid var(--purple); }
+  .player-card h2 { margin:0 0 10px; font-size:16px; color:var(--purple); }
+  .player-row { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  .player-field { flex:1 1 180px; }
+  .player-field label { display:block; font-size:12px; color:var(--text-muted); margin-bottom:4px; }
+  .player-field input, .player-field select {
+    width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg); color:var(--text); font-size:14px;
+  }
+  .player-actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .player-actions button { flex:1 1 auto; min-width:110px; }
+
+  .scale-card h2 { margin:0 0 10px; font-size:16px; color:var(--navy); }
+  .scale-legend { display:flex; gap:6px; flex-wrap:wrap; }
+  .scale-chip { flex:1 1 60px; text-align:center; padding:8px 4px; border-radius:8px; font-size:12px; font-weight:700; }
+  .scale-desc { font-size:12.5px; color:var(--text-muted); margin-top:10px; line-height:1.5; }
+
+  .cat-title { font-size:15px; font-weight:700; color:var(--navy); margin:22px 0 10px; padding-bottom:6px; border-bottom:2px solid var(--navy); }
+
+  .skill-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:8px; }
+  .skill-name { font-size:14.5px; font-weight:600; }
+  .rating-row { display:flex; gap:6px; margin-top:8px; }
+  .rate-btn { flex:1; aspect-ratio:1; border-radius:8px; border:1.5px solid var(--border); background:var(--chip-off);
+    color:var(--text-muted); font-size:14px; font-weight:700; cursor:pointer; transition:transform .08s ease; -webkit-tap-highlight-color:transparent; }
+  .rate-btn:active { transform:scale(0.94); }
+  .rate-btn[data-r="1"].selected { background:var(--red); border-color:var(--red); color:white; }
+  .rate-btn[data-r="2"].selected { background:var(--orange); border-color:var(--orange); color:white; }
+  .rate-btn[data-r="3"].selected { background:var(--amber); border-color:var(--amber); color:white; }
+  .rate-btn[data-r="4"].selected { background:var(--green); border-color:var(--green); color:white; }
+  .rate-btn[data-r="5"].selected { background:var(--navy); border-color:var(--navy); color:white; }
+
+  .note-input { width:100%; margin-top:6px; padding:7px 9px; border-radius:7px; border:1px solid var(--border);
+    background:var(--bg); color:var(--text); font-size:13px; font-family:inherit; resize:vertical; min-height:32px; }
+
+  .summary-card { border-left:4px solid var(--navy); }
+  .summary-card h2 { margin:0 0 10px; font-size:16px; color:var(--navy); }
+  .summary-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); font-size:14px; }
+  .summary-row:last-child { border-bottom:none; }
+  .summary-badge { display:inline-block; min-width:30px; text-align:center; padding:2px 8px; border-radius:6px; font-weight:700; color:white; font-size:13px; }
+
+  .action-row { display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+  .btn { flex:1 1 auto; padding:12px; border-radius:10px; border:none; font-size:14.5px; font-weight:700; cursor:pointer; min-width:120px; }
+  .btn-primary { background:var(--navy); color:white; }
+  .btn-secondary { background:var(--chip-off); color:var(--text); }
+  .btn-send { background:var(--green); color:white; }
+  .btn-purple { background:var(--purple); color:white; }
+
+  .footer-note { text-align:center; font-size:12px; color:var(--text-muted); margin-top:22px; font-style:italic; }
+  .save-status { text-align:center; font-size:12px; color:var(--green); margin-top:8px; min-height:16px; }
+
+  .preview-box { display:none; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px;
+    font-size:12px; font-family:ui-monospace,Menlo,Consolas,monospace; white-space:pre-wrap; max-height:220px; overflow:auto; margin-top:10px; color:var(--text); }
+
+  .roster-section { margin-top:18px; }
+  .roster-title { font-size:15px; font-weight:700; color:var(--teal); margin-bottom:8px; }
+  .roster-table-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:10px; }
+  table.roster { width:100%; border-collapse:collapse; font-size:12.5px; min-width:560px; }
+  table.roster th { background:var(--teal); color:white; padding:8px 6px; text-align:left; white-space:nowrap; }
+  table.roster td { padding:7px 6px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  table.roster tr:nth-child(even) td { background:var(--teal-light); }
+  .cell-score { font-weight:700; text-align:center; }
+  .row-actions button { font-size:11px; padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--chip-off); color:var(--text); cursor:pointer; margin-right:4px; }
+  .detail-panel { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px; margin-top:6px;
+    font-size:12.5px; white-space:pre-wrap; font-family:ui-monospace,Menlo,Consolas,monospace; display:none; }
+  .empty-note { font-size:13px; color:var(--text-muted); font-style:italic; padding:10px 0; }
+  .msg-banner { border-radius:8px; padding:10px 12px; font-size:13.5px; margin-top:10px; display:none; }
+  .msg-banner.error { background:var(--red-light); color:var(--red); display:block; }
+  .msg-banner.success { background:var(--green-light); color:var(--green); display:block; }
+
+  @media print {
+    header.top { position:static; box-shadow:none; }
+    .action-row { display:none; }
+    .tab-btn:not(.active) { display:none; }
+    body { background:white; }
+    .card, .skill-card { border:1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="brand">Shorelake SC · BU14 Rec — Coach Use Only</div>
+    <h1>Coach Player Evaluation</h1>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabField" onclick="switchTab('field')">⚽ Field</button>
+      <button class="tab-btn" id="tabGK" onclick="switchTab('gk')">🧤 Goalkeeper</button>
+      <button class="tab-btn" id="tabRoster" onclick="switchTab('roster')">📊 Team Roster</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card" id="sharedBanner" style="display:none; border-left:4px solid var(--teal);">
+    <h2 style="margin:0 0 8px; font-size:15px; color:var(--teal);" id="sharedBannerTitle">Shared Roster</h2>
+    <p style="font-size:13px; color:var(--text-muted); margin:0 0 10px;" id="sharedBannerText"></p>
+    <div class="action-row" id="sharedBannerActions"></div>
+  </div>
+
+  <!-- EVAL VIEW (field or gk) -->
+  <div id="evalView">
+    <div class="card intro-card">
+      <h2>Full coach evaluation</h2>
+      <p>This is the fuller rubric coaches use to track each player's development over the season — same 1–5 scale as the player self-evals, with more categories and detail. Work through one player at a time; your in-progress work autosaves, and "Save to Roster" files it under that player's name.</p>
+    </div>
+
+    <div class="card player-card">
+      <h2>Player</h2>
+      <div class="player-row">
+        <div class="player-field">
+          <label>Load a saved player</label>
+          <select id="playerSelect" onchange="loadPlayer(this.value)">
+            <option value="">— New player —</option>
+          </select>
+        </div>
+        <div class="player-field">
+          <label>Player Name</label>
+          <input type="text" id="pName" placeholder="Player's name" oninput="scheduleSave()">
+        </div>
+      </div>
+      <div class="player-actions">
+        <button class="btn btn-purple" onclick="savePlayerToRoster()">💾 Save to Roster</button>
+        <button class="btn btn-secondary" onclick="newPlayerForm(event)">New / Clear Form</button>
+      </div>
+    </div>
+
+    <div class="card scale-card">
+      <h2>The 5-Point Scale</h2>
+      <div class="scale-legend">
+        <div class="scale-chip" style="background:var(--red-light); color:var(--red);">1<br>Emerging</div>
+        <div class="scale-chip" style="background:var(--orange-light); color:var(--orange);">2<br>Developing</div>
+        <div class="scale-chip" style="background:var(--yellow-light); color:var(--amber);">3<br>Solid</div>
+        <div class="scale-chip" style="background:var(--green-light); color:var(--green);">4<br>Strong</div>
+        <div class="scale-chip" style="background:var(--blue-light); color:var(--navy);">5<br>Advanced</div>
+      </div>
+      <div class="scale-desc">1 = inconsistent even in low-pressure moments &nbsp;·&nbsp; 3 = reliable in games most of the time &nbsp;·&nbsp; 5 = executes under pressure, helps model it for teammates</div>
+    </div>
+
+    <div id="categoriesRoot"></div>
+
+    <div class="card summary-card" id="summaryCard" style="display:none;">
+      <h2>Category Averages — This Player</h2>
+      <div id="summaryRows"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin:0 0 8px; font-size:16px; color:var(--navy);">Share This Player's Summary (optional)</h2>
+      <p style="font-size:13.5px; color:var(--text-muted); margin:0 0 12px;">Useful for sending one player's write-up to a co-coach or parent conversation notes.</p>
+      <div class="action-row">
+        <button class="btn btn-send" onclick="copySummary()">📋 Copy This Player's Summary</button>
+        <button class="btn btn-secondary" onclick="togglePreview()">Preview</button>
+      </div>
+      <div class="preview-box" id="previewBox"></div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" onclick="try{window.print()}catch(e){}">Print / Save PDF</button>
+    </div>
+    <div class="save-status" id="saveStatus"></div>
+    <div class="footer-note">Shorelake SC · BU14 · Coach Player Evaluation — internal use only, not for standings or selection</div>
+  </div>
+
+  <!-- ROSTER VIEW -->
+  <div id="rosterView" style="display:none;">
+    <div class="card intro-card">
+      <h2>Team Roster</h2>
+      <p>Every player you've saved from the Field or Goalkeeper tabs shows up here. This is your one-page view of the whole team — use it to spot patterns and plan training around actual gaps.</p>
+    </div>
+
+    <div class="roster-section">
+      <div class="roster-title">⚽ Field Players</div>
+      <div id="fieldRosterWrap"></div>
+    </div>
+
+    <div class="roster-section">
+      <div class="roster-title">🧤 Goalkeepers</div>
+      <div id="gkRosterWrap"></div>
+    </div>
+
+    <div class="msg-banner" id="rosterMsg"></div>
+
+    <div class="action-row" style="margin-top:20px;">
+      <button class="btn btn-secondary" onclick="exportCSV()">Download CSV</button>
+      <button class="btn btn-secondary" onclick="clearRoster(event)">Clear All Roster Data</button>
+    </div>
+    <div class="footer-note">Roster data is stored only on this device/browser. It is not shared or synced anywhere else.</div>
+  </div>
+
+</div>
+
+<script>
+const DATA = {
+  field: [
+    ['Technical', [
+      'First touch — settling the ball, both feet',
+      'Dribbling / close control under pressure',
+      'Short passing accuracy (ground balls)',
+      'Long passing / switching play',
+      'Receiving on the half-turn (playing forward)',
+      'Shooting technique and composure',
+      '1v1 defending — jockeying, timing the tackle',
+      'Heading — technique and confidence',
+      'Weak-foot competency',
+    ]],
+    ['Tactical', [
+      'Positioning without the ball (shape, spacing)',
+      'Decision-making on the ball (pass/dribble/shoot)',
+      'Supporting the ball carrier (angles and distance)',
+      'Defensive shape and tracking runs',
+      'Transition speed (attack ↔ defense mindset)',
+      'Reading the game — anticipation and scanning',
+      'Understanding of position(s) played',
+    ]],
+    ['Physical', [
+      'Speed (straight-line)',
+      'Agility / change of direction',
+      'Endurance and work rate over the full game',
+      'Strength on the ball (holding off pressure)',
+      'Balance and coordination',
+    ]],
+    ['Mental', [
+      'Confidence on the ball',
+      'Composure under pressure or after mistakes',
+      'Coachability — applies feedback in-game',
+      'Focus and concentration for full match',
+      'Competitiveness and effort level',
+      'Resilience after a mistake or conceded goal',
+    ]],
+    ['Team', [
+      'Communication — calls for ball, talks in defense',
+      'Teamwork and off-ball unselfishness',
+      'Sportsmanship with opponents, refs, teammates',
+      'Leadership / positive influence on teammates',
+      'Attendance and effort in training',
+    ]],
+  ],
+  gk: [
+    ['Shot Stopping', [
+      'Set position and ready stance',
+      'Low shot handling (ground balls both sides)',
+      'High shot handling (catches vs. punching)',
+      'Diving technique and extension',
+      'Reaction saves at close range',
+    ]],
+    ['Crosses & Aerial Balls', [
+      'Reading the flight and calling "KEEPER!"',
+      'Positioning and timing to claim crosses',
+      'Commanding the box — communicating with defenders',
+      'Punching when unable to catch safely',
+    ]],
+    ['Distribution', [
+      'Rolling / throwing accuracy (short distribution)',
+      'Drop-kick / goal kick technique',
+      'Long distribution accuracy and decision-making',
+      'Quick distribution to start counters',
+      'Playing out from the back — short pass with feet',
+    ]],
+    ['Footwork & Technical', [
+      'Footwork and agility across the goal line',
+      "Angle play — cutting down the shooter's angle",
+      'Ball-handling — secure hands, no fumbles',
+      'Basic 1v1 technique (spreading, staying big)',
+      'Kicking technique with both feet',
+    ]],
+    ['Tactical / Game Reading', [
+      'Reading the game and positioning off the ball',
+      'Organizing the backline verbally',
+      'Decision-making: come or stay?',
+      'Sweeper-keeper — willingness to play off line',
+      'Understanding of offside trap and defensive line',
+    ]],
+    ['Mental', [
+      'Composure and focus — can reset after a goal',
+      'Confidence in claiming the ball under pressure',
+      'Coachability — applies GK-specific feedback',
+      'Leadership presence — commands respect from team',
+      'Resilience across a full game (no "going missing")',
+    ]],
+    ['Team', [
+      'Communication (constant, clear, encouraging)',
+      'Builds trust with defenders',
+      'Sportsmanship with opponents and refs',
+      'Effort and engagement in all training',
+    ]],
+  ],
+};
+
+let currentTab = 'field';
+let saveTimer = null;
+
+// ---------- Shared roster storage (extendsclass.com JSON storage — free, no login, org-independent) ----------
+const STORE_BASE = 'https://api.extendsclass.com/json-storage/bin/';
+const urlParams = new URLSearchParams(window.location.search);
+let sharedStoreId = urlParams.get('store');
+let sharedMode = !!sharedStoreId;
+let sharedRosterCache = null; // last-known shared roster, refreshed on demand
+
+function localRosterKey() { return 'shorelake_coach_eval_roster_local'; }
+
+async function fetchSharedRoster() {
+  if (!sharedStoreId) return null;
+  try {
+    const res = await fetch(STORE_BASE + sharedStoreId, { headers: { 'Accept': 'application/json' } });
+    const text = await res.text();
+    if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + text.slice(0,200));
+    const data = text ? JSON.parse(text) : {};
+    sharedRosterCache = data || {};
+    safeSet(localRosterKey(), sharedRosterCache); // mirror locally as a backup cache
+    return sharedRosterCache;
+  } catch (e) {
+    console.warn('Shared roster fetch failed, using local cache:', e.message);
+    return safeGet(localRosterKey()) || {};
+  }
+}
+
+async function pushSharedRoster(roster) {
+  sharedRosterCache = roster;
+  safeSet(localRosterKey(), roster); // always mirror locally first
+  if (!sharedStoreId) return true;
+  try {
+    const res = await fetch(STORE_BASE + sharedStoreId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(roster),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error('HTTP ' + res.status + ': ' + text.slice(0,200));
+    }
+    return true;
+  } catch (e) {
+    console.warn('Shared roster push failed — saved locally only:', e.message);
+    lastSyncError = e.message;
+    return false;
+  }
+}
+
+async function getRoster() {
+  if (sharedMode) {
+    const fresh = await fetchSharedRoster();
+    return fresh || {};
+  }
+  return safeGet(rosterKey()) || {};
+}
+
+async function saveRoster(roster) {
+  if (sharedMode) {
+    return await pushSharedRoster(roster);
+  }
+  return safeSet(rosterKey(), roster);
+}
+
+let lastSyncError = '';
+
+async function createSharedStore() {
+  const banner = document.getElementById('sharedBannerText');
+  banner.textContent = 'Setting up shared storage…';
+  try {
+    const res = await fetch('https://api.extendsclass.com/json-storage/bin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const text = await res.text();
+    let body = null;
+    try { body = text ? JSON.parse(text) : null; } catch (e) { /* leave null */ }
+
+    if (!res.ok) {
+      throw new Error('The service returned an error (HTTP ' + res.status + '): ' + text.slice(0, 200));
+    }
+    if (!body) {
+      throw new Error('The service returned something unexpected: ' + text.slice(0, 200));
+    }
+    const newId = body.bin || body.id || (body.uri ? String(body.uri).split('/').filter(Boolean).pop() : null);
+    if (!newId) {
+      throw new Error('Could not find an ID in the response: ' + text.slice(0, 200));
+    }
+
+    const newUrl = window.location.origin + window.location.pathname + '?store=' + newId;
+    sharedStoreId = newId;
+    sharedMode = true;
+    window.history.replaceState({}, '', newUrl);
+    await pushSharedRoster({}); // initialize the shared store with an empty roster
+    renderSharedBanner();
+    await renderRoster();
+  } catch (e) {
+    banner.textContent = "Couldn't set up shared storage automatically. Details: " + e.message +
+      " — You can retry, check your internet connection, or let your coach know this exact message so it can be debugged.";
+  }
+}
+
+function renderSharedBanner() {
+  const wrap = document.getElementById('sharedBanner');
+  const title = document.getElementById('sharedBannerTitle');
+  const text = document.getElementById('sharedBannerText');
+  const actions = document.getElementById('sharedBannerActions');
+  wrap.style.display = 'block';
+  if (sharedMode) {
+    title.textContent = '🔗 Shared Roster — Connected';
+    text.textContent = 'This link is shared. Anyone who opens this exact URL sees and edits the same team roster. Bookmark it and share it with your co-coaches.';
+    actions.innerHTML = '';
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn btn-secondary';
+    copyBtn.textContent = 'Copy Shareable Link';
+    copyBtn.onclick = () => {
+      const url = window.location.href;
+      fallbackCopy(url, (ok) => {
+        const status = document.getElementById('saveStatus');
+        if (status) { status.textContent = ok ? 'Link copied ✓' : 'Could not copy — copy from your address bar'; setTimeout(()=>status.textContent='',2500); }
+      });
+    };
+    actions.appendChild(copyBtn);
+  } else {
+    title.textContent = 'Set Up Shared Roster (one-time)';
+    text.textContent = "Right now your roster only lives on this device. Set up shared storage once, then share the resulting link with your co-coaches so everyone sees and edits the same roster.";
+    actions.innerHTML = '';
+    const setupBtn = document.createElement('button');
+    setupBtn.className = 'btn btn-purple';
+    setupBtn.textContent = '🔗 Set Up Shared Roster';
+    setupBtn.onclick = createSharedStore;
+    actions.appendChild(setupBtn);
+  }
+}
+
+
+function draftKey(tab) { return 'shorelake_coach_eval_draft_' + tab; }
+function rosterKey() { return 'shorelake_coach_eval_roster'; }
+
+function safeGet(key) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+function safeSet(key, obj) { try { localStorage.setItem(key, JSON.stringify(obj)); return true; } catch (e) { return false; } }
+function safeRemove(key) { try { localStorage.removeItem(key); } catch (e) {} }
+
+function slug(catIdx, skillIdx) { return 'c' + catIdx + '_s' + skillIdx; }
+function slugName(name) { return name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+
+function renderCategories(tab) {
+  const root = document.getElementById('categoriesRoot');
+  root.innerHTML = '';
+  DATA[tab].forEach((catEntry, ci) => {
+    const [catName, skills] = catEntry;
+    const catTitle = document.createElement('div');
+    catTitle.className = 'cat-title';
+    catTitle.textContent = (ci+1) + '. ' + catName;
+    root.appendChild(catTitle);
+    skills.forEach((name, si) => {
+      const id = slug(ci, si);
+      const card = document.createElement('div');
+      card.className = 'skill-card';
+      card.innerHTML = `
+        <div class="skill-name">${name}</div>
+        <div class="rating-row" data-id="${id}">
+          ${[1,2,3,4,5].map(r => `<button class="rate-btn" data-r="${r}" onclick="setRating('${id}', ${r})">${r}</button>`).join('')}
+        </div>
+        <textarea class="note-input" rows="1" placeholder="Notes (optional)" data-note="${id}" oninput="scheduleSave()"></textarea>
+      `;
+      root.appendChild(card);
+    });
+  });
+}
+
+function setRating(id, value) {
+  const row = document.querySelector(`.rating-row[data-id="${id}"]`);
+  if (!row) return;
+  const current = row.dataset.value;
+  const newVal = (current == value) ? '' : String(value);
+  row.dataset.value = newVal;
+  row.querySelectorAll('.rate-btn').forEach(btn => btn.classList.toggle('selected', btn.dataset.r === newVal));
+  scheduleSave();
+  updateSummary();
+}
+
+function getCategoryAverages(tab) {
+  const result = [];
+  DATA[tab].forEach((catEntry, ci) => {
+    const [catName, skills] = catEntry;
+    let sum = 0, count = 0;
+    skills.forEach((s, si) => {
+      const row = document.querySelector(`.rating-row[data-id="${slug(ci,si)}"]`);
+      const v = row && row.dataset.value ? parseInt(row.dataset.value) : null;
+      if (v) { sum += v; count++; }
+    });
+    result.push({ name: catName, avg: count > 0 ? (sum/count) : null, count });
+  });
+  return result;
+}
+
+function badgeColorFor(avg) {
+  if (avg === null) return '#999';
+  if (avg < 1.5) return 'var(--red)';
+  if (avg < 2.5) return 'var(--orange)';
+  if (avg < 3.5) return 'var(--amber)';
+  if (avg < 4.5) return 'var(--green)';
+  return 'var(--navy)';
+}
+
+function updateSummary() {
+  const cats = getCategoryAverages(currentTab);
+  const rows = document.getElementById('summaryRows');
+  rows.innerHTML = '';
+  let anyScored = false;
+  cats.forEach(c => {
+    if (c.avg !== null) anyScored = true;
+    const div = document.createElement('div');
+    div.className = 'summary-row';
+    const badgeText = c.avg !== null ? c.avg.toFixed(1) : '—';
+    div.innerHTML = `<span>${c.name}</span><span class="summary-badge" style="background:${badgeColorFor(c.avg)}">${badgeText}</span>`;
+    rows.appendChild(div);
+  });
+  document.getElementById('summaryCard').style.display = anyScored ? 'block' : 'none';
+}
+
+function collectState() {
+  const state = { name: document.getElementById('pName').value, ratings: {}, notes: {} };
+  document.querySelectorAll('.rating-row').forEach(row => { if (row.dataset.value) state.ratings[row.dataset.id] = row.dataset.value; });
+  document.querySelectorAll('.note-input').forEach(ta => { if (ta.value) state.notes[ta.dataset.note] = ta.value; });
+  return state;
+}
+
+function applyState(state) {
+  document.getElementById('pName').value = state && state.name ? state.name : '';
+  if (state && state.ratings) {
+    Object.keys(state.ratings).forEach(id => {
+      const row = document.querySelector(`.rating-row[data-id="${id}"]`);
+      if (row) {
+        row.dataset.value = state.ratings[id];
+        row.querySelectorAll('.rate-btn').forEach(btn => btn.classList.toggle('selected', btn.dataset.r === state.ratings[id]));
+      }
+    });
+  }
+  if (state && state.notes) {
+    Object.keys(state.notes).forEach(id => {
+      const ta = document.querySelector(`.note-input[data-note="${id}"]`);
+      if (ta) ta.value = state.notes[id];
+    });
+  }
+  updateSummary();
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const ok = safeSet(draftKey(currentTab), collectState());
+    const status = document.getElementById('saveStatus');
+    status.textContent = ok ? 'Draft saved on this device ✓' : '';
+    if (ok) setTimeout(() => { status.textContent = ''; }, 1500);
+  }, 400);
+}
+
+function attachInputListeners() {
+  document.getElementById('pName').addEventListener('input', scheduleSave);
+}
+
+async function populatePlayerSelect() {
+  const roster = await getRoster();
+  const sel = document.getElementById('playerSelect');
+  sel.innerHTML = '<option value="">— New player —</option>';
+  Object.entries(roster)
+    .filter(([id, e]) => e.typeKey === currentTab)
+    .sort((a,b) => (a[1].name||'').localeCompare(b[1].name||''))
+    .forEach(([id, e]) => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = e.name;
+      sel.appendChild(opt);
+    });
+}
+
+async function loadPlayer(id) {
+  if (!id) { newPlayerFormSilent(); return; }
+  const roster = await getRoster();
+  const entry = roster[id];
+  if (!entry) return;
+  const state = { name: entry.name, ratings: entry.ratingsRaw || {}, notes: entry.notesRaw || {} };
+  applyState(state);
+  safeSet(draftKey(currentTab), state);
+}
+
+function newPlayerFormSilent() {
+  document.getElementById('pName').value = '';
+  renderCategories(currentTab);
+  updateSummary();
+  safeRemove(draftKey(currentTab));
+}
+
+function newPlayerForm(evt) {
+  const btn = evt.currentTarget;
+  if (btn.dataset.armed !== '1') {
+    btn.dataset.armed = '1';
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = 'Tap again to clear';
+    btn.style.background = 'var(--red)';
+    btn.style.color = 'white';
+    btn._armTimeout = setTimeout(() => resetArmedButton(btn), 3000);
+    return;
+  }
+  clearTimeout(btn._armTimeout);
+  resetArmedButton(btn);
+  newPlayerFormSilent();
+  document.getElementById('playerSelect').value = '';
+}
+
+function resetArmedButton(btn) {
+  btn.dataset.armed = '0';
+  btn.textContent = btn.dataset.originalText || btn.textContent;
+  btn.style.background = '';
+  btn.style.color = '';
+}
+
+async function savePlayerToRoster() {
+  const state = collectState();
+  const status = document.getElementById('saveStatus');
+  if (!state.name || !state.name.trim()) {
+    status.textContent = 'Enter a player name before saving.';
+    setTimeout(() => { status.textContent = ''; }, 2500);
+    return;
+  }
+  status.textContent = sharedMode ? 'Saving to shared roster…' : 'Saving…';
+
+  const cats = getCategoryAverages(currentTab);
+  const overallVals = cats.filter(c => c.avg !== null).map(c => c.avg);
+  const overall = overallVals.length ? (overallVals.reduce((a,b)=>a+b,0)/overallVals.length) : null;
+
+  const roster = await getRoster(); // latest, so we don't clobber a co-coach's concurrent edit
+  const id = currentTab + '__' + slugName(state.name);
+  const categories = {};
+  cats.forEach(c => { categories[c.name] = c.avg !== null ? c.avg.toFixed(1) : 'N/A'; });
+
+  roster[id] = {
+    typeKey: currentTab,
+    name: state.name.trim(),
+    categories,
+    overall: overall !== null ? overall.toFixed(1) : 'N/A',
+    ratingsRaw: state.ratings,
+    notesRaw: state.notes,
+    savedAt: new Date().toISOString(),
+  };
+  const ok = await saveRoster(roster);
+  await populatePlayerSelect();
+  document.getElementById('playerSelect').value = id;
+  status.textContent = ok
+    ? '✓ Saved ' + state.name.trim() + (sharedMode ? ' to the shared roster' : ' to the roster')
+    : '⚠ Saved on this device only — sync failed: ' + (lastSyncError || 'unknown error');
+  setTimeout(() => { status.textContent = ''; }, 4000);
+}
+
+async function switchTab(tab) {
+  if (tab === 'roster') {
+    document.getElementById('evalView').style.display = 'none';
+    document.getElementById('rosterView').style.display = 'block';
+    document.getElementById('tabField').classList.remove('active');
+    document.getElementById('tabGK').classList.remove('active');
+    document.getElementById('tabRoster').classList.add('active');
+    renderSharedBanner();
+    await renderRoster();
+    return;
+  }
+  currentTab = tab;
+  document.getElementById('evalView').style.display = 'block';
+  document.getElementById('rosterView').style.display = 'none';
+  document.getElementById('tabField').classList.toggle('active', tab === 'field');
+  document.getElementById('tabGK').classList.toggle('active', tab === 'gk');
+  document.getElementById('tabRoster').classList.remove('active');
+  renderSharedBanner();
+  renderCategories(tab);
+  attachInputListeners();
+  await populatePlayerSelect();
+  applyState(safeGet(draftKey(tab)));
+  document.getElementById('previewBox').style.display = 'none';
+}
+
+// ---------- Copy / preview this player's summary ----------
+function buildSummaryText() {
+  const state = collectState();
+  const name = state.name || '(no name entered)';
+  const typeLabel = currentTab === 'field' ? 'Field' : 'Goalkeeper';
+  const cats = getCategoryAverages(currentTab);
+  const overallVals = cats.filter(c => c.avg !== null).map(c => c.avg);
+  const overall = overallVals.length ? (overallVals.reduce((a,b)=>a+b,0)/overallVals.length) : null;
+
+  let lines = [];
+  lines.push('Shorelake SC — BU14 Coach Evaluation');
+  lines.push('Player: ' + name + ' (' + typeLabel + ')');
+  cats.forEach(c => lines.push(c.name + ': ' + (c.avg !== null ? c.avg.toFixed(1) : 'N/A')));
+  lines.push('Overall: ' + (overall !== null ? overall.toFixed(1) : 'N/A'));
+  lines.push('-----');
+  DATA[currentTab].forEach((catEntry, ci) => {
+    const [catName, skills] = catEntry;
+    lines.push('[' + catName + ']');
+    skills.forEach((s, si) => {
+      const id = slug(ci, si);
+      const rating = state.ratings[id] || '-';
+      const note = state.notes[id] ? ' — ' + state.notes[id] : '';
+      lines.push('  ' + s + ': ' + rating + note);
+    });
+  });
+  return lines.join('\n');
+}
+
+function togglePreview() {
+  const box = document.getElementById('previewBox');
+  if (box.style.display === 'block') { box.style.display = 'none'; return; }
+  box.textContent = buildSummaryText();
+  box.style.display = 'block';
+}
+
+function copySummary() {
+  const text = buildSummaryText();
+  const status = document.getElementById('saveStatus');
+  function done(ok) {
+    status.textContent = ok ? 'Copied! ✓' : 'Could not copy — use Preview and copy manually';
+    setTimeout(() => { status.textContent = ''; }, 2500);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => done(true)).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, cb) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    cb(ok);
+  } catch (e) { cb(false); }
+}
+
+// ---------- Roster ----------
+async function renderRoster() {
+  const wrap = document.getElementById('fieldRosterWrap');
+  wrap.innerHTML = '<div class="empty-note">Loading…</div>';
+  const roster = await getRoster();
+  renderRosterTable('field', document.getElementById('fieldRosterWrap'), roster);
+  renderRosterTable('gk', document.getElementById('gkRosterWrap'), roster);
+}
+
+function renderRosterTable(typeKey, container, roster) {
+  const entries = Object.entries(roster).filter(([id, e]) => e.typeKey === typeKey);
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="empty-note">No players saved yet.</div>';
+    return;
+  }
+  const catNames = Object.keys(entries[0][1].categories);
+  let html = '<div class="roster-table-wrap"><table class="roster"><thead><tr>';
+  html += '<th>Name</th>';
+  catNames.forEach(c => html += `<th>${c}</th>`);
+  html += '<th>Overall</th><th></th></tr></thead><tbody>';
+  entries.sort((a,b) => (a[1].name||'').localeCompare(b[1].name||''));
+  entries.forEach(([id, e]) => {
+    html += '<tr>';
+    html += `<td>${e.name||''}</td>`;
+    catNames.forEach(c => {
+      const val = e.categories[c];
+      const num = val && val !== 'N/A' ? parseFloat(val) : null;
+      const color = num !== null ? badgeColorFor(num) : '#999';
+      html += `<td class="cell-score" style="color:${color}">${val || '—'}</td>`;
+    });
+    const oNum = e.overall && e.overall !== 'N/A' ? parseFloat(e.overall) : null;
+    html += `<td class="cell-score" style="color:${oNum!==null?badgeColorFor(oNum):'#999'}">${e.overall||'—'}</td>`;
+    html += `<td class="row-actions"><button onclick="toggleDetail('${id}')">View</button><button onclick="editFromRoster('${typeKey}','${id}')">Edit</button><button onclick="deleteEntry(event, '${id}')">Delete</button></td>`;
+    html += '</tr>';
+    html += `<tr id="detailRow_${id}" style="display:none;"><td colspan="${2+catNames.length+1}"><div class="detail-panel" id="detailPanel_${id}"></div></td></tr>`;
+  });
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+async function toggleDetail(id) {
+  const row = document.getElementById('detailRow_' + id);
+  const panel = document.getElementById('detailPanel_' + id);
+  const isHidden = row.style.display === 'none';
+  if (isHidden) {
+    const roster = await getRoster();
+    const entry = roster[id];
+    if (!entry) return;
+    const lines = [];
+    lines.push(entry.name + ' — Overall: ' + entry.overall);
+    Object.keys(entry.categories).forEach(c => lines.push('  ' + c + ': ' + entry.categories[c]));
+    panel.textContent = lines.join('\n');
+    row.style.display = 'table-row';
+  } else {
+    row.style.display = 'none';
+  }
+}
+
+async function editFromRoster(typeKey, id) {
+  await switchTab(typeKey);
+  document.getElementById('tabField').classList.toggle('active', typeKey === 'field');
+  document.getElementById('tabGK').classList.toggle('active', typeKey === 'gk');
+  await populatePlayerSelect();
+  document.getElementById('playerSelect').value = id;
+  await loadPlayer(id);
+}
+
+async function deleteEntry(evt, id) {
+  const btn = evt.currentTarget;
+  if (btn.dataset.armed !== '1') {
+    btn.dataset.armed = '1';
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = 'Confirm?';
+    btn.style.background = 'var(--red)';
+    btn.style.color = 'white';
+    btn._armTimeout = setTimeout(() => resetArmedButton(btn), 3000);
+    return;
+  }
+  clearTimeout(btn._armTimeout);
+  const roster = await getRoster();
+  delete roster[id];
+  await saveRoster(roster);
+  await renderRoster();
+}
+
+async function clearRoster(evt) {
+  const btn = evt.currentTarget;
+  if (btn.dataset.armed !== '1') {
+    btn.dataset.armed = '1';
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = 'Tap again to erase everything';
+    btn.style.background = 'var(--red)';
+    btn.style.color = 'white';
+    btn._armTimeout = setTimeout(() => resetArmedButton(btn), 3000);
+    return;
+  }
+  clearTimeout(btn._armTimeout);
+  resetArmedButton(btn);
+  safeRemove(rosterKey());
+  safeRemove(localRosterKey());
+  await saveRoster({});
+  await renderRoster();
+}
+
+async function exportCSV() {
+  const roster = await getRoster();
+  const entries = Object.values(roster);
+  const msg = document.getElementById('rosterMsg');
+  if (entries.length === 0) {
+    msg.className = 'msg-banner error';
+    msg.textContent = 'No roster data to export yet.';
+    return;
+  }
+  const allCats = new Set();
+  entries.forEach(e => Object.keys(e.categories).forEach(c => allCats.add(c)));
+  const catList = Array.from(allCats);
+  let csv = 'Type,Name,' + catList.join(',') + ',Overall\n';
+  entries.forEach(e => {
+    const row = [e.typeKey === 'gk' ? 'Goalkeeper' : 'Field', e.name, ...catList.map(c => e.categories[c]||''), e.overall||''];
+    csv += row.map(v => '"' + String(v||'').replace(/"/g,'""') + '"').join(',') + '\n';
+  });
+  try {
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'shorelake_bu14_coach_player_roster.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    msg.className = 'msg-banner success';
+    msg.textContent = 'CSV download started.';
+    return;
+  } catch (e) {}
+  fallbackCopy(csv, (ok) => {
+    msg.className = ok ? 'msg-banner success' : 'msg-banner error';
+    msg.textContent = ok
+      ? 'Download unavailable here — CSV copied to clipboard instead. Paste it into a spreadsheet.'
+      : 'Could not export automatically. Please screenshot the table instead.';
+  });
+}
+
+// init
+renderSharedBanner();
+renderCategories(currentTab);
+attachInputListeners();
+populatePlayerSelect();
+applyState(safeGet(draftKey(currentTab)));
+</script>
+
+</body>
+</html>
